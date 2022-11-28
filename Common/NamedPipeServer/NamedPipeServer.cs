@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Common.NamedPipeServer
 {
-    public class NamedPipeServer : INamedPipeServer
+    public class NamedPipeServer : IDataChannelServer
     {
         private readonly string _pipePath;
         private int _pipeHandle;

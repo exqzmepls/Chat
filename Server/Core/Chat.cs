@@ -9,22 +9,22 @@ namespace Server.Core
 {
     internal class Chat : IDisposable
     {
-        private readonly Dictionary<Guid, INamedPipeClient> _sessions = new Dictionary<Guid, INamedPipeClient>();
-        private readonly INamedPipeServer _chatPipeServer;
+        private readonly Dictionary<Guid, IDataChannelClient> _sessions = new Dictionary<Guid, IDataChannelClient>();
+        private readonly IDataChannelServer _chatDataChannelServer;
         private readonly Logger _logger;
 
         public Chat(string name, Logger logger)
         {
-            _chatPipeServer = new NamedPipeServer(name);
+            _chatDataChannelServer = new MailSlotServer(name); //new NamedPipeServer(name);
             _logger = logger;
         }
 
         public void Create()
         {
-            _chatPipeServer.Start(SendUserNewMessage);
+            _chatDataChannelServer.Start(SendUserNewMessage);
         }
 
-        public void AddClientSession(Guid sessionId, INamedPipeClient sessionPipeClient)
+        public void AddClientSession(Guid sessionId, IDataChannelClient sessionPipeClient)
         {
             _sessions[sessionId] = sessionPipeClient;
         }
@@ -36,7 +36,7 @@ namespace Server.Core
 
         public void Dispose()
         {
-            _chatPipeServer.Dispose();
+            _chatDataChannelServer.Dispose();
         }
 
         public void SendSystemMessage(string text)

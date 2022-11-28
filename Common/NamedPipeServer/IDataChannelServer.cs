@@ -2,7 +2,7 @@
 
 namespace Common.NamedPipeServer
 {
-    public interface INamedPipeServer : IDisposable
+    public interface IDataChannelServer : IDisposable
     {
         void Start(Action<string> onMessageAction);
     }

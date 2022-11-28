@@ -1,6 +1,6 @@
 ﻿namespace Common.NamedPipeClient
 {
-    public interface INamedPipeClient
+    public interface IDataChannelClient
     {
         void PushMessage(string message);
     }

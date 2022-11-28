@@ -10,9 +10,9 @@ namespace Client.Core
     internal class ChatClient : IChatClient
     {
         private readonly Guid _sessionId = Guid.NewGuid();
-        private readonly INamedPipeClient _serverMainPipeClient;
-        private readonly INamedPipeClient _chatPipeClient;
-        private readonly INamedPipeServer _sessionPipeServer;
+        private readonly IDataChannelClient _serverMainDataChannelClient;
+        private readonly IDataChannelClient _chatDataChannelClient;
+        private readonly IDataChannelServer _sessionDataChannelServer;
         private readonly ConnectionInfo _connectionInfo;
 
         public ChatClient(ConnectionInfo connectionInfo)
@@ -20,9 +20,9 @@ namespace Client.Core
             _connectionInfo = connectionInfo;
 
             var serverHostName = connectionInfo.ServerHostName;
-            _serverMainPipeClient = new NamedPipeClient(serverHostName, "ServerMainPipe");
-            _chatPipeClient = new NamedPipeClient(serverHostName, _connectionInfo.ChatName);
-            _sessionPipeServer = new NamedPipeServer(_sessionId.ToString());
+            _serverMainDataChannelClient = new MailSlotClient(serverHostName, "ServerMainPipe"); //new NamedPipeClient(serverHostName, "ServerMainPipe");
+            _chatDataChannelClient = new MailSlotClient(serverHostName, _connectionInfo.ChatName); //new NamedPipeClient(serverHostName, _connectionInfo.ChatName);
+            _sessionDataChannelServer = new MailSlotServer(_sessionId.ToString());  // new NamedPipeServer(_sessionId.ToString());
 
         }
 
@@ -38,9 +38,9 @@ namespace Client.Core
             };
 
             var quitRequestSerialized = JsonConvert.SerializeObject(quitRequest);
-            _serverMainPipeClient.PushMessage(quitRequestSerialized);
+            _serverMainDataChannelClient.PushMessage(quitRequestSerialized);
 
-            _sessionPipeServer.Dispose();
+            _sessionDataChannelServer.Dispose();
         }
 
         public string GetInfo()
@@ -61,9 +61,9 @@ namespace Client.Core
             };
 
             var joinRequestSerialized = JsonConvert.SerializeObject(joinRequest);
-            _serverMainPipeClient.PushMessage(joinRequestSerialized);
+            _serverMainDataChannelClient.PushMessage(joinRequestSerialized);
 
-            _sessionPipeServer.Start(onMessageAction);
+            _sessionDataChannelServer.Start(onMessageAction);
         }
 
         public void SendMessage(string text)
@@ -74,7 +74,7 @@ namespace Client.Core
                 Text = text
             };
             var serializedMessage = JsonConvert.SerializeObject(messageDto);
-            _chatPipeClient.PushMessage(serializedMessage);
+            _chatDataChannelClient.PushMessage(serializedMessage);
         }
     }
 }

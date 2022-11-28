@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Common.NamedPipeClient
 {
-    public class NamedPipeClient : INamedPipeClient
+    public class NamedPipeClient : IDataChannelClient
     {
         private readonly string _pipePath;
 

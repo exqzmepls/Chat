@@ -9,7 +9,7 @@ namespace Server.Core
 {
     internal class ChatService : IChatService
     {
-        private readonly INamedPipeServer _mainPipeServer;
+        private readonly IDataChannelServer _mainDataChannelServer;
         private readonly IReadOnlyDictionary<string, Chat> _chats;
         private readonly Logger _logger;
 
@@ -17,14 +17,14 @@ namespace Server.Core
         {
             _logger = logger;
 
-            _mainPipeServer = new NamedPipeServer("ServerMainPipe");
+            _mainDataChannelServer = new MailSlotServer("ServerMainPipe"); //new NamedPipeServer("ServerMainPipe");
 
             _chats = chats.ToDictionary(c => c, c => new Chat(c, _logger));
         }
 
         public void Dispose()
         {
-            _mainPipeServer.Dispose();
+            _mainDataChannelServer.Dispose();
 
             foreach (var chat in _chats.Values)
             {
@@ -34,7 +34,7 @@ namespace Server.Core
 
         public void Start()
         {
-            _mainPipeServer.Start(ProcessMessage);
+            _mainDataChannelServer.Start(ProcessMessage);
 
             foreach (var chat in _chats.Values)
             {
@@ -53,7 +53,7 @@ namespace Server.Core
             switch (deserializedMessage.RequestType)
             {
                 case RequestType.Join:
-                    var sessionPipeClient = new NamedPipeClient(deserializedMessage.ClientHostName, sessionId.ToString());
+                    var sessionPipeClient = new MailSlotClient(deserializedMessage.ClientHostName, sessionId.ToString()); // new NamedPipeClient(deserializedMessage.ClientHostName, sessionId.ToString());
                     chatInstance.AddClientSession(sessionId, sessionPipeClient);
                     chatInstance.SendSystemMessage($"{deserializedMessage.Login} joined");
                     break;
