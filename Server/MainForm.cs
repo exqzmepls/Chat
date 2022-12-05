@@ -34,5 +34,17 @@ namespace Server
         {
             _chatService.Dispose();
         }
+
+        private void createChatToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var createChatDialog = new CreateChatDialog();
+            if (createChatDialog.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            var chatName = createChatDialog.GetChatName();
+            _chatService.AddChat(chatName);
+        }
     }
 }

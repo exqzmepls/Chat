@@ -3,24 +3,29 @@ using Common.NamedPipeClient;
 using Common.NamedPipeServer;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 
 namespace Server.Core
 {
     internal class ChatService : IChatService
     {
+        private readonly Dictionary<string, Chat> _chats = new Dictionary<string, Chat>();
+
         private readonly IDataChannelServer _mainDataChannelServer;
-        private readonly IReadOnlyDictionary<string, Chat> _chats;
         private readonly Logger _logger;
 
-        public ChatService(Logger logger, params string[] chats)
+        public ChatService(Logger logger)
         {
             _logger = logger;
 
             _mainDataChannelServer = new MailSlotServer("ServerMainPipe"); //new NamedPipeServer("ServerMainPipe");
+        }
 
-            _chats = chats.ToDictionary(c => c, c => new Chat(c, _logger));
+        public void AddChat(string name)
+        {
+            var newChat = new Chat(name, _logger);
+            _chats.Add(name, newChat);
+            newChat.Create();
         }
 
         public void Dispose()
@@ -36,11 +41,6 @@ namespace Server.Core
         public void Start()
         {
             _mainDataChannelServer.Start(ProcessMessage);
-
-            foreach (var chat in _chats.Values)
-            {
-                chat.Create();
-            }
         }
 
         private void ProcessMessage(string message)

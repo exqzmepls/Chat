@@ -16,7 +16,7 @@ namespace Server
             Application.SetCompatibleTextRenderingDefault(false);
 
             var logger = new Logger();
-            var chatService = new ChatService(logger, "first", "second");
+            var chatService = new ChatService(logger);
             var mainForm = new MainForm(chatService);
             logger.SetLogAction((m) =>
             {
