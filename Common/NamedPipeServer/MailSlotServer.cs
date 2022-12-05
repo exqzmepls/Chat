@@ -1,5 +1,6 @@
 ﻿using KdSoft.MailSlot;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace Common.NamedPipeServer
     public class MailSlotServer : IDataChannelServer
     {
         private readonly string _name;
-        private Task _listenTask;
+        private FileStream _server;
 
         public MailSlotServer(string name)
         {
@@ -17,24 +18,27 @@ namespace Common.NamedPipeServer
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _server?.Dispose();
         }
 
         public void Start(Action<string> onMessageAction)
         {
-            _listenTask = Task.Run(() =>
+            Task.Run(() =>
             {
-                AsyncMailSlotListener
-
                 var buffer = new byte[1024];
-                using (var server = MailSlot.CreateServer(_name))
+                _server = MailSlot.CreateServer(_name);
+                try
                 {
                     while (true)
                     {
-                        var count = server.ReadAsync(buffer, 0, buffer.Length).Result;
+                        var count = _server.Read(buffer, 0, buffer.Length);
                         var msg = Encoding.Unicode.GetString(buffer, 0, count);
                         onMessageAction(msg);
                     }
+                }
+                catch
+                {
+                    return;
                 }
             });
         }

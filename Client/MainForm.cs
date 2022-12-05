@@ -13,9 +13,8 @@ namespace Client
 
         private void joinChatToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var serversLookup = new ArpServersLookup();
-            var hostNameProvider = new HostNameProvider();
-            var joinChatDialog = new JoinChatDialog(serversLookup, hostNameProvider);
+            var serversLookup = new ServersLookup();
+            var joinChatDialog = new JoinChatDialog(serversLookup);
             var dialogResult = joinChatDialog.ShowDialog();
             if (dialogResult == DialogResult.OK)
             {

@@ -23,7 +23,6 @@ namespace Client.Core
             _serverMainDataChannelClient = new MailSlotClient(serverHostName, "ServerMainPipe"); //new NamedPipeClient(serverHostName, "ServerMainPipe");
             _chatDataChannelClient = new MailSlotClient(serverHostName, _connectionInfo.ChatName); //new NamedPipeClient(serverHostName, _connectionInfo.ChatName);
             _sessionDataChannelServer = new MailSlotServer(_sessionId.ToString());  // new NamedPipeServer(_sessionId.ToString());
-
         }
 
         public void Dispose()
@@ -60,10 +59,10 @@ namespace Client.Core
                 Login = _connectionInfo.Login
             };
 
+            _sessionDataChannelServer.Start(onMessageAction);
+
             var joinRequestSerialized = JsonConvert.SerializeObject(joinRequest);
             _serverMainDataChannelClient.PushMessage(joinRequestSerialized);
-
-            _sessionDataChannelServer.Start(onMessageAction);
         }
 
         public void SendMessage(string text)

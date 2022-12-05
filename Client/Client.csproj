@@ -62,6 +62,7 @@
     <Compile Include="Core\IChatClient.cs" />
     <Compile Include="Core\IHostNameProvider.cs" />
     <Compile Include="Core\IServersLookup.cs" />
+    <Compile Include="Core\ServersLookup.cs" />
     <Compile Include="JoinChatDialog.cs">
       <SubType>Form</SubType>
     </Compile>

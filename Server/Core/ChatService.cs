@@ -4,6 +4,7 @@ using Common.NamedPipeServer;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace Server.Core
 {
@@ -47,21 +48,35 @@ namespace Server.Core
             _logger.Log(message);
 
             var deserializedMessage = JsonConvert.DeserializeObject<RequestMessage>(message);
-            var chatInstance = _chats[deserializedMessage.ChatName];
-            var sessionId = deserializedMessage.SessionId;
+
 
             switch (deserializedMessage.RequestType)
             {
-                case RequestType.Join:
-                    var sessionPipeClient = new MailSlotClient(deserializedMessage.ClientHostName, sessionId.ToString()); // new NamedPipeClient(deserializedMessage.ClientHostName, sessionId.ToString());
-                    chatInstance.AddClientSession(sessionId, sessionPipeClient);
-                    chatInstance.SendSystemMessage($"{deserializedMessage.Login} joined");
+                case RequestType.Ping:
+                    var clientHostName = deserializedMessage.ClientHostName;
+                    var responseWriter = new MailSlotClient(clientHostName, "Ping");
+                    responseWriter.PushMessage(Dns.GetHostName());
                     break;
 
+                case RequestType.Join:
+                    {
+                        var chatInstance = _chats[deserializedMessage.ChatName];
+                        var sessionId = deserializedMessage.SessionId;
+                        var sessionPipeClient = new MailSlotClient(deserializedMessage.ClientHostName, sessionId.ToString()); // new NamedPipeClient(deserializedMessage.ClientHostName, sessionId.ToString());
+                        chatInstance.AddClientSession(sessionId, sessionPipeClient);
+                        chatInstance.SendSystemMessage($"{deserializedMessage.Login} joined");
+                        break;
+                    }
+
+
                 case RequestType.Quit:
-                    chatInstance.RemoveClientSession(sessionId);
-                    chatInstance.SendSystemMessage($"{deserializedMessage.Login} quitted");
-                    break;
+                    {
+                        var chatInstance = _chats[deserializedMessage.ChatName];
+                        var sessionId = deserializedMessage.SessionId;
+                        chatInstance.RemoveClientSession(sessionId);
+                        chatInstance.SendSystemMessage($"{deserializedMessage.Login} quitted");
+                        break;
+                    }
             }
         }
     }
