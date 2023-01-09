@@ -4,9 +4,9 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common.NamedPipeServer
+namespace Common.Servers
 {
-    public class MailSlotServer : IDataChannelServer
+    public class MailSlotServer : IServer
     {
         private readonly string _name;
         private FileStream _server;

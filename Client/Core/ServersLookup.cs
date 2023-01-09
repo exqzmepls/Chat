@@ -1,6 +1,6 @@
 ﻿using Common.Dtos;
-using Common.NamedPipeClient;
-using Common.NamedPipeServer;
+using Common.Clients;
+using Common.Servers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net;
@@ -10,8 +10,8 @@ namespace Client.Core
 {
     internal class ServersLookup : IServersLookup
     {
-        private readonly IDataChannelClient _pingChannelClient = new MailSlotClient("*", "ServerMainPipe");
-        private readonly IDataChannelServer _dataChannelServer = new MailSlotServer("Ping");
+        private readonly IClient _pingChannelClient = new MailSlotClient("*", "ServerMainPipe");
+        private readonly IServer _dataChannelServer = new MailSlotServer("Ping");
 
         public IEnumerable<string> GetServers()
         {

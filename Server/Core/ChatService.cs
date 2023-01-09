@@ -1,6 +1,6 @@
 ﻿using Common.Dtos;
-using Common.NamedPipeClient;
-using Common.NamedPipeServer;
+using Common.Clients;
+using Common.Servers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net;
@@ -11,7 +11,7 @@ namespace Server.Core
     {
         private readonly Dictionary<string, Chat> _chats = new Dictionary<string, Chat>();
 
-        private readonly IDataChannelServer _mainDataChannelServer;
+        private readonly IServer _mainDataChannelServer;
         private readonly Logger _logger;
 
         public ChatService(Logger logger)

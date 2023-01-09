@@ -1,6 +1,6 @@
 ﻿using Common.Dtos;
-using Common.NamedPipeClient;
-using Common.NamedPipeServer;
+using Common.Clients;
+using Common.Servers;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,8 +9,8 @@ namespace Server.Core
 {
     internal class Chat : IDisposable
     {
-        private readonly Dictionary<Guid, IDataChannelClient> _sessions = new Dictionary<Guid, IDataChannelClient>();
-        private readonly IDataChannelServer _chatDataChannelServer;
+        private readonly Dictionary<Guid, IClient> _sessions = new Dictionary<Guid, IClient>();
+        private readonly IServer _chatDataChannelServer;
         private readonly Logger _logger;
 
         public Chat(string name, Logger logger)
@@ -24,7 +24,7 @@ namespace Server.Core
             _chatDataChannelServer.Start(SendUserNewMessage);
         }
 
-        public void AddClientSession(Guid sessionId, IDataChannelClient sessionPipeClient)
+        public void AddClientSession(Guid sessionId, IClient sessionPipeClient)
         {
             _sessions[sessionId] = sessionPipeClient;
         }

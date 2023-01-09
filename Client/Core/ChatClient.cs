@@ -1,6 +1,6 @@
 ﻿using Common.Dtos;
-using Common.NamedPipeClient;
-using Common.NamedPipeServer;
+using Common.Clients;
+using Common.Servers;
 using Newtonsoft.Json;
 using System;
 using System.Net;
@@ -10,9 +10,9 @@ namespace Client.Core
     internal class ChatClient : IChatClient
     {
         private readonly Guid _sessionId = Guid.NewGuid();
-        private readonly IDataChannelClient _serverMainDataChannelClient;
-        private readonly IDataChannelClient _chatDataChannelClient;
-        private readonly IDataChannelServer _sessionDataChannelServer;
+        private readonly IClient _serverMainDataChannelClient;
+        private readonly IClient _chatDataChannelClient;
+        private readonly IServer _sessionDataChannelServer;
         private readonly ConnectionInfo _connectionInfo;
 
         public ChatClient(ConnectionInfo connectionInfo)

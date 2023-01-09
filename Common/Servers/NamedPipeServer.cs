@@ -2,9 +2,9 @@
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common.NamedPipeServer
+namespace Common.Servers
 {
-    public class NamedPipeServer : IDataChannelServer
+    public class NamedPipeServer : IServer
     {
         private readonly string _pipePath;
         private int _pipeHandle;

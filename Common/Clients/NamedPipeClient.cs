@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
 
-namespace Common.NamedPipeClient
+namespace Common.Clients
 {
-    public class NamedPipeClient : IDataChannelClient
+    public class NamedPipeClient : IClient
     {
         private readonly string _pipePath;
 

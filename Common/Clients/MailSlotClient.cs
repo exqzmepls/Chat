@@ -1,9 +1,9 @@
 ﻿using KdSoft.MailSlot;
 using System.Text;
 
-namespace Common.NamedPipeClient
+namespace Common.Clients
 {
-    public class MailSlotClient : IDataChannelClient
+    public class MailSlotClient : IClient
     {
         private readonly string _serverHostName;
         private readonly string _name;
