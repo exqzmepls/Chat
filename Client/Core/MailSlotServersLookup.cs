@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace Client.Core
 {
-    internal class ServersLookup : IServersLookup
+    internal class MailSlotServersLookup : IServersLookup
     {
         private readonly IClient _pingChannelClient = new MailSlotClient("*", "ServerMainPipe");
         private readonly IServer _dataChannelServer = new MailSlotServer("Ping");

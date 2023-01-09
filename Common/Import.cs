@@ -1,42 +1,9 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace Common
 {
     public class Import
     {
-        [StructLayout(LayoutKind.Sequential)]
-        public struct MIB_IPNETROW
-        {
-            [MarshalAs(UnmanagedType.U4)]
-            public int dwIndex;
-            [MarshalAs(UnmanagedType.U4)]
-            public int dwPhysAddrLen;
-            [MarshalAs(UnmanagedType.U1)]
-            public byte mac0;
-            [MarshalAs(UnmanagedType.U1)]
-            public byte mac1;
-            [MarshalAs(UnmanagedType.U1)]
-            public byte mac2;
-            [MarshalAs(UnmanagedType.U1)]
-            public byte mac3;
-            [MarshalAs(UnmanagedType.U1)]
-            public byte mac4;
-            [MarshalAs(UnmanagedType.U1)]
-            public byte mac5;
-            [MarshalAs(UnmanagedType.U1)]
-            public byte mac6;
-            [MarshalAs(UnmanagedType.U1)]
-            public byte mac7;
-            [MarshalAs(UnmanagedType.U4)]
-            public int dwAddr;
-            [MarshalAs(UnmanagedType.U4)]
-            public int dwType;
-        }
-
-        [DllImport("IpHlpApi.dll")]
-        public static extern long GetIpNetTable(IntPtr pIpNetTable, ref int pdwSize, bool bOrder);
-
         //Создание именованного канала
         [DllImport("kernel32.dll")]
         public static extern int CreateNamedPipe(string lpName,         //строка, содержащая имя канала 

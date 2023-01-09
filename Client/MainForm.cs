@@ -15,7 +15,7 @@ namespace Client
 
         private void joinChatToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var serversLookup = new ServersLookup();
+            var serversLookup = new MailSlotServersLookup();
             var joinChatDialog = new JoinChatDialog(serversLookup);
             var dialogResult = joinChatDialog.ShowDialog();
             if (dialogResult == DialogResult.OK)
