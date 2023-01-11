@@ -50,6 +50,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientListeners\TcpSocketClientListener.cs" />
+    <Compile Include="Clients\TcpSocketClient.cs" />
+    <Compile Include="ClientWriters\IClientWriter.cs" />
+    <Compile Include="ClientWriters\TcpSocketClientWriter.cs" />
     <Compile Include="Dtos\ChatMessage.cs" />
     <Compile Include="Dtos\RequestMessage.cs" />
     <Compile Include="Dtos\RequestType.cs" />
@@ -57,14 +61,17 @@
     <Compile Include="Clients\IClient.cs" />
     <Compile Include="Clients\MailSlotClient.cs" />
     <Compile Include="Clients\NamedPipeClient.cs" />
+    <Compile Include="ClientListeners\IClientListener.cs" />
     <Compile Include="Servers\IServer.cs" />
     <Compile Include="Servers\MailSlotServer.cs" />
     <Compile Include="Servers\NamedPipeServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Servers\TcpSocketServer.cs" />
     <Compile Include="Types.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

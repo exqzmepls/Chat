@@ -1,9 +1,13 @@
-﻿using System;
+﻿using Common.ClientListeners;
+using Common.ClientWriters;
+using System;
 
 namespace Common.Servers
 {
-    public interface IServer : IDisposable
+    public interface IServer
     {
-        void Start(Action<string> onMessageAction);
+        void Start(Action<IClientListener, IClientWriter> onAcceptedClient);
+
+        void Stop();
     }
 }
