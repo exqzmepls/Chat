@@ -58,9 +58,11 @@
     <Compile Include="ChatForm.Designer.cs">
       <DependentUpon>ChatForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Core\ChatClientService.cs" />
     <Compile Include="Core\ConnectionInfo.cs" />
     <Compile Include="Core\ChatClient.cs" />
     <Compile Include="Core\IChatClient.cs" />
+    <Compile Include="Core\IChatClientService.cs" />
     <Compile Include="Core\IServersLookup.cs" />
     <Compile Include="Core\MailSlotServersLookup.cs" />
     <Compile Include="JoinChatDialog.cs">

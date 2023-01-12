@@ -1,7 +1,5 @@
 ﻿using Client.Core;
-using GEmojiSharp;
 using System;
-using System.Linq;
 using System.Windows.Forms;
 
 namespace Client

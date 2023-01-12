@@ -1,9 +1,13 @@
-﻿namespace Common.Dtos
+﻿using System;
+
+namespace Common.Dtos
 {
     public class ChatMessage
     {
-        public string Text { get; set; }
+        public Guid SessionId { get; set; }
 
-        public string SenderLogin { get; set; }
+        public string Chat { get; set; }
+
+        public string Text { get; set; }
     }
 }

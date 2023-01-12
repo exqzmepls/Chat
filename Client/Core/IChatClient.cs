@@ -1,13 +1,7 @@
-﻿using System;
-
-namespace Client.Core
+﻿namespace Client.Core
 {
-    internal interface IChatClient : IDisposable
+    internal interface IChatClient
     {
-        string GetInfo();
-
-        void Join(Action<string> onMessageAction);
-
         void SendMessage(string text);
     }
 }

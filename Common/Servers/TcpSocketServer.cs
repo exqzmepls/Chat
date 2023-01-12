@@ -1,6 +1,7 @@
 ﻿using Common.ClientListeners;
 using Common.ClientWriters;
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -10,9 +11,10 @@ namespace Common.Servers
     {
         private readonly TcpListener _tcpListener;
 
-        public TcpSocketServer()
+        public TcpSocketServer(string hostIp, int port)
         {
-            _tcpListener = new TcpListener();
+            var ipAddress = IPAddress.Parse(hostIp);
+            _tcpListener = new TcpListener(ipAddress, port);
         }
 
         public void Start(Action<IClientListener, IClientWriter> onAcceptedClient)

@@ -1,5 +1,4 @@
-﻿using Server.Core;
-using System;
+﻿using System;
 using System.Windows.Forms;
 
 namespace Server
@@ -15,16 +14,8 @@ namespace Server
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var logger = new Logger();
-            var chatService = new ChatService(logger);
-            var mainForm = new MainForm(chatService);
-            logger.SetLogAction((m) =>
-            {
-                mainForm.Invoke((MethodInvoker)delegate
-                {
-                    mainForm.LogMessage(m);
-                });
-            });
+            
+            var mainForm = new MainForm();
             Application.Run(mainForm);
         }
     }

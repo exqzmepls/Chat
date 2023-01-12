@@ -3,7 +3,6 @@
     public enum RequestType
     {
         Join,
-        Quit,
-        Ping
+        Quit
     }
 }

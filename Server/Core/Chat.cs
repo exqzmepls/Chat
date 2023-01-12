@@ -1,64 +1,82 @@
-﻿using Common.Dtos;
-using Common.Clients;
-using Common.Servers;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Common.ClientWriters;
+using Common.Dtos;
+using Newtonsoft.Json;
 
 namespace Server.Core
 {
-    internal class Chat : IDisposable
+    internal class Chat
     {
-        private readonly Dictionary<Guid, IClient> _sessions = new Dictionary<Guid, IClient>();
-        private readonly IServer _chatDataChannelServer;
+        private readonly IDictionary<Guid, MemberSession> _sessions = new Dictionary<Guid, MemberSession>();
+
+        private readonly string _name;
         private readonly Logger _logger;
 
         public Chat(string name, Logger logger)
         {
-            _chatDataChannelServer = new MailSlotServer(name); //new NamedPipeServer(name);
+            _name = name;
             _logger = logger;
         }
 
-        public void Create()
+        public void AddClientSession(Guid sessionId, string login, IClientWriter clientWriter)
         {
-            _chatDataChannelServer.Start(SendUserNewMessage);
-        }
-
-        public void AddClientSession(Guid sessionId, IClient sessionPipeClient)
-        {
-            _sessions[sessionId] = sessionPipeClient;
+            _logger.Log($"{login} added to chat (session id = {sessionId})");
+            _sessions[sessionId] = new MemberSession(login, clientWriter);
+            SendSystemMessage($"{login} joined");
         }
 
         public void RemoveClientSession(Guid sessionId)
         {
+            var isSessionExist = _sessions.TryGetValue(sessionId, out var session);
+            if (!isSessionExist)
+            {
+                _logger.Log("No such session in chat.");
+                return;
+            }
+
             _sessions.Remove(sessionId);
+            SendSystemMessage($"{session.Login} quitted");
+            _logger.Log($"{session.Login} removed from chat (session id = {sessionId})");
         }
 
-        public void Dispose()
+        public void AddNewMessage(Guid sessionId, string messageText)
         {
-            _chatDataChannelServer.Dispose();
+            var isSessionExist = _sessions.TryGetValue(sessionId, out var session);
+
+            if (!isSessionExist)
+            {
+                _logger.Log("Sender session does not exit.");
+                return;
+            }
+
+            _logger.Log("Sending message to all chat members...");
+            SendUserNewMessage(session.Login, messageText);
         }
 
-        public void SendSystemMessage(string text)
+        private void SendSystemMessage(string text)
         {
             var formattedMessage = $"* {text} *";
             SendMessage(formattedMessage);
         }
 
-        private void SendUserNewMessage(string message)
+        private void SendUserNewMessage(string senderLogin, string messageText)
         {
-            _logger.Log(message);
-
-            var deserializedMessage = JsonConvert.DeserializeObject<ChatMessage>(message);
-            var formattedMessage = $"{deserializedMessage.SenderLogin} >> {deserializedMessage.Text}";
+            var formattedMessage = $"{senderLogin} >> {messageText}";
             SendMessage(formattedMessage);
         }
 
         private void SendMessage(string message)
         {
+            var chatNotification = new ChatNotification
+            {
+                ChatName = _name,
+                Message = message
+            };
+            var serializedMessage = JsonConvert.SerializeObject(chatNotification);
             foreach (var session in _sessions.Values)
             {
-                session.PushMessage(message);
+                session.SendResponse(serializedMessage);
             }
         }
     }

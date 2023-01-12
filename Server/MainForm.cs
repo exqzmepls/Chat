@@ -1,19 +1,16 @@
 ﻿using Server.Core;
 using System;
-using System.Net;
 using System.Windows.Forms;
 
 namespace Server
 {
     public partial class MainForm : Form
     {
-        private readonly IChatService _chatService;
+        private IChatService _chatService;
 
-        internal MainForm(IChatService chatService)
+        internal MainForm()
         {
             InitializeComponent();
-
-            _chatService = chatService;
         }
 
         public void LogMessage(string message)
@@ -24,15 +21,33 @@ namespace Server
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            var hostname = Dns.GetHostName();
+            var createChatDialog = new SelectHostPointDialog();
+            if (createChatDialog.ShowDialog() != DialogResult.OK)
+            {
+                Close();
+                return;
+            }
+
+            var hostname = createChatDialog.GetIpAddress();
+            var port = createChatDialog.GetPort();
+
             Text = hostname;
 
+            var logger = new Logger();
+            logger.SetLogAction((m) =>
+            {
+                Invoke((MethodInvoker)delegate
+                {
+                    LogMessage(m);
+                });
+            });
+            _chatService = new ChatService(hostname, port, logger);
             _chatService.Start();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _chatService.Dispose();
+            _chatService?.Stop();
         }
 
         private void createChatToolStripMenuItem_Click(object sender, EventArgs e)

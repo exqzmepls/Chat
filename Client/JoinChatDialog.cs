@@ -1,5 +1,4 @@
 ﻿using Client.Core;
-using System;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -23,7 +22,6 @@ namespace Client
 
         private void JoinChatDialog_Load(object sender, System.EventArgs e)
         {
-            //var servers = Array.Empty<string>();
             var servers =  _serversLookup.GetServers();
             serverComboBox.Items.AddRange(servers.ToArray());
             serverComboBox.SelectedIndex = 0;

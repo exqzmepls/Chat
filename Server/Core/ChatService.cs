@@ -1,9 +1,7 @@
 ﻿using Common.Dtos;
-using Common.Clients;
 using Common.Servers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Net;
 
 namespace Server.Core
 {
@@ -11,73 +9,78 @@ namespace Server.Core
     {
         private readonly Dictionary<string, Chat> _chats = new Dictionary<string, Chat>();
 
-        private readonly IServer _mainDataChannelServer;
+        private readonly IServer _server;
         private readonly Logger _logger;
 
-        public ChatService(Logger logger)
+        public ChatService(string hostIp, int hostPort, Logger logger)
         {
+            _server = new TcpSocketServer(hostIp, hostPort);
             _logger = logger;
-
-            _mainDataChannelServer = new MailSlotServer("ServerMainPipe"); //new NamedPipeServer("ServerMainPipe");
         }
 
         public void AddChat(string name)
         {
             var newChat = new Chat(name, _logger);
             _chats.Add(name, newChat);
-            newChat.Create();
-        }
-
-        public void Dispose()
-        {
-            _mainDataChannelServer.Dispose();
-
-            foreach (var chat in _chats.Values)
-            {
-                chat.Dispose();
-            }
         }
 
         public void Start()
         {
-            _mainDataChannelServer.Start(ProcessMessage);
+            _server.Start((clientListener, clientWriter) =>
+            {
+                _logger.Log("New client connected.");
+
+                clientListener.Start(message =>
+                {
+                    _logger.Log(message);
+
+                    var deserializedRequestMessage = JsonConvert.DeserializeObject<RequestMessage>(message);
+                    if (deserializedRequestMessage != null)
+                    {
+                        var chatName = deserializedRequestMessage.ChatName;
+                        if (!_chats.ContainsKey(chatName))
+                        {
+                            _logger.Log($"{chatName} does not exist");
+                            return;
+                        }
+
+                        var chat = _chats[chatName];
+                        var sessionId = deserializedRequestMessage.SessionId;
+                        switch (deserializedRequestMessage.RequestType)
+                        {
+                            // если присоединился к чату, то создаем сессию и добавляем сессию в чат (сессия == гуид + ответчик клиенту)
+                            case RequestType.Join:
+                                chat.AddClientSession(sessionId, deserializedRequestMessage.Login, clientWriter);
+                                break;
+
+                            // если вышел из чата, то удаляем сессию из чата
+                            case RequestType.Quit:
+                                chat.RemoveClientSession(sessionId);
+                                break;
+                        }
+                        return;
+                    }
+
+                    var deserializedChatMessage = JsonConvert.DeserializeObject<ChatMessage>(message);
+                    if (deserializedChatMessage != null)
+                    {
+                        var chatName = deserializedChatMessage.Chat;
+                        if (!_chats.ContainsKey(chatName))
+                        {
+                            _logger.Log($"{chatName} does not exist");
+                            return;
+                        }
+                        var chat = _chats[chatName];
+                        var sessionId = deserializedChatMessage.SessionId;
+                        chat.AddNewMessage(sessionId, deserializedChatMessage.Text);
+                    }
+                });
+            });
         }
 
-        private void ProcessMessage(string message)
+        public void Stop()
         {
-            _logger.Log(message);
-
-            var deserializedMessage = JsonConvert.DeserializeObject<RequestMessage>(message);
-
-
-            switch (deserializedMessage.RequestType)
-            {
-                case RequestType.Ping:
-                    var clientHostName = deserializedMessage.ClientHostName;
-                    var responseWriter = new MailSlotClient(clientHostName, "Ping");
-                    responseWriter.PushMessage(Dns.GetHostName());
-                    break;
-
-                case RequestType.Join:
-                    {
-                        var chatInstance = _chats[deserializedMessage.ChatName];
-                        var sessionId = deserializedMessage.SessionId;
-                        var sessionPipeClient = new MailSlotClient(deserializedMessage.ClientHostName, sessionId.ToString()); // new NamedPipeClient(deserializedMessage.ClientHostName, sessionId.ToString());
-                        chatInstance.AddClientSession(sessionId, sessionPipeClient);
-                        chatInstance.SendSystemMessage($"{deserializedMessage.Login} joined");
-                        break;
-                    }
-
-
-                case RequestType.Quit:
-                    {
-                        var chatInstance = _chats[deserializedMessage.ChatName];
-                        var sessionId = deserializedMessage.SessionId;
-                        chatInstance.RemoveClientSession(sessionId);
-                        chatInstance.SendSystemMessage($"{deserializedMessage.Login} quitted");
-                        break;
-                    }
-            }
+            _server.Stop();
         }
     }
 }
