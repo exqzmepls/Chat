@@ -1,6 +1,7 @@
 ﻿using Common.Dtos;
 using Common.Servers;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace Server.Core
@@ -34,10 +35,11 @@ namespace Server.Core
                 {
                     _logger.Log(message);
 
-                    var deserializedRequestMessage = JsonConvert.DeserializeObject<RequestMessage>(message);
-                    if (deserializedRequestMessage != null)
+                    var deserializedJoinRequestMessage = DeserializeMessageOrDefault<JoinRequest>(message);
+                    if (deserializedJoinRequestMessage != null)
                     {
-                        var chatName = deserializedRequestMessage.ChatName;
+                        // если присоединился к чату, то создаем сессию и добавляем сессию в чат (сессия == гуид + ответчик клиенту)
+                        var chatName = deserializedJoinRequestMessage.ChatName;
                         if (!_chats.ContainsKey(chatName))
                         {
                             _logger.Log($"{chatName} does not exist");
@@ -45,23 +47,29 @@ namespace Server.Core
                         }
 
                         var chat = _chats[chatName];
-                        var sessionId = deserializedRequestMessage.SessionId;
-                        switch (deserializedRequestMessage.RequestType)
-                        {
-                            // если присоединился к чату, то создаем сессию и добавляем сессию в чат (сессия == гуид + ответчик клиенту)
-                            case RequestType.Join:
-                                chat.AddClientSession(sessionId, deserializedRequestMessage.Login, clientWriter);
-                                break;
-
-                            // если вышел из чата, то удаляем сессию из чата
-                            case RequestType.Quit:
-                                chat.RemoveClientSession(sessionId);
-                                break;
-                        }
+                        var sessionId = deserializedJoinRequestMessage.SessionId;
+                        chat.AddClientSession(sessionId, deserializedJoinRequestMessage.Login, clientWriter);
                         return;
                     }
 
-                    var deserializedChatMessage = JsonConvert.DeserializeObject<ChatMessage>(message);
+                    var deserializedQuitRequestMessage = DeserializeMessageOrDefault<QuitRequest>(message);
+                    if (deserializedQuitRequestMessage != null)
+                    {
+                        // если вышел из чата, то удаляем сессию из чата
+                        var chatName = deserializedQuitRequestMessage.ChatName;
+                        if (!_chats.ContainsKey(chatName))
+                        {
+                            _logger.Log($"{chatName} does not exist");
+                            return;
+                        }
+
+                        var chat = _chats[chatName];
+                        var sessionId = deserializedQuitRequestMessage.SessionId;
+                        chat.RemoveClientSession(sessionId);
+                        return;
+                    }
+
+                    var deserializedChatMessage = DeserializeMessageOrDefault<ChatMessage>(message);
                     if (deserializedChatMessage != null)
                     {
                         var chatName = deserializedChatMessage.Chat;
@@ -81,6 +89,19 @@ namespace Server.Core
         public void Stop()
         {
             _server.Stop();
+        }
+
+        private static T DeserializeMessageOrDefault<T>(string message)
+        {
+            try
+            {
+                var deserialized = JsonConvert.DeserializeObject<T>(message);
+                return deserialized;
+            }
+            catch
+            {
+                return default;
+            }
         }
     }
 }

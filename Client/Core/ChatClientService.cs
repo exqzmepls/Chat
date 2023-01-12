@@ -9,7 +9,7 @@ namespace Client.Core
 {
     internal class ChatClientService : IChatClientService
     {
-        private readonly IDictionary<string, IList<Action<string>>> _activeChats = new Dictionary<string, IList<Action<string>>>();
+        private readonly IDictionary<string, IDictionary<Guid, Action<string>>> _activeChats = new Dictionary<string, IDictionary<Guid, Action<string>>>();
 
         private readonly IClient _client;
 
@@ -22,15 +22,23 @@ namespace Client.Core
         {
             _client.Connect(message =>
             {
-                var deserializedMessage = JsonConvert.DeserializeObject<ChatNotification>(message);
-
-                var isChatExist = _activeChats.TryGetValue(deserializedMessage.ChatName, out var membersCallbacks);
-                if (!isChatExist)
-                    return;
-
-                foreach (var callback in membersCallbacks)
+                var messages = message.Split(new string[] { "---end-marker---" }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var receivedMessage in messages)
                 {
-                    callback(deserializedMessage.Message);
+                    var deserializedMessage = JsonConvert.DeserializeObject<ChatNotification>(receivedMessage);
+
+                    var isChatExist = _activeChats.TryGetValue(deserializedMessage.ChatName, out var membersSessions);
+                    if (!isChatExist)
+                    {
+                        return;
+                    }
+
+                    var isSessionExist = membersSessions.TryGetValue(deserializedMessage.SessionId, out var callbackAction);
+                    if (!isSessionExist)
+                    {
+                        return;
+                    }
+                    callbackAction(deserializedMessage.Message);
                 }
             });
         }
@@ -43,23 +51,26 @@ namespace Client.Core
         public IChatClient JoinChat(string chatName, string login, Action<string> onMessageReceived)
         {
             var sessionId = Guid.NewGuid();
-            var joinRequestMessage = new RequestMessage
+            var joinRequestMessage = new JoinRequest
             {
                 SessionId = sessionId,
                 ChatName = chatName,
                 Login = login,
                 ClientHostName = Dns.GetHostName(),
-                RequestType = RequestType.Join
             };
 
             var isChatExist = _activeChats.ContainsKey(chatName);
             if (isChatExist)
             {
-                _activeChats[chatName].Add(onMessageReceived);
+                _activeChats[chatName].Add(sessionId, onMessageReceived);
             }
             else
             {
-                _activeChats.Add(chatName, new List<Action<string>> { onMessageReceived });
+                var newChatSessions = new Dictionary<Guid, Action<string>>
+                {
+                    {sessionId, onMessageReceived}
+                };
+                _activeChats.Add(chatName, newChatSessions);
             }
 
             PushMessage(joinRequestMessage);
@@ -70,12 +81,10 @@ namespace Client.Core
 
         public void QuitChat(string chatName, Guid sessionId)
         {
-            var quitRequestMessage = new RequestMessage
+            var quitRequestMessage = new QuitRequest
             {
                 SessionId = sessionId,
                 ChatName = chatName,
-                ClientHostName = Dns.GetHostName(),
-                RequestType = RequestType.Quit
             };
             PushMessage(quitRequestMessage);
         }

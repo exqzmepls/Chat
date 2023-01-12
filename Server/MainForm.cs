@@ -1,11 +1,14 @@
 ﻿using Server.Core;
 using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Server
 {
     public partial class MainForm : Form
     {
+        private readonly IPingSignal _pingSignal = new UdpPingSignal();
+
         private IChatService _chatService;
 
         internal MainForm()
@@ -43,10 +46,13 @@ namespace Server
             });
             _chatService = new ChatService(hostname, port, logger);
             _chatService.Start();
+
+            _pingSignal.Run(hostname, port);
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            _pingSignal.Cancel();
             _chatService?.Stop();
         }
 

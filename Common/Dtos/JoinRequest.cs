@@ -3,15 +3,18 @@ using Newtonsoft.Json;
 
 namespace Common.Dtos
 {
-    public class ChatMessage
+    public class JoinRequest
     {
         [JsonProperty(Required = Required.Always)]
         public Guid SessionId { get; set; }
 
         [JsonProperty(Required = Required.Always)]
-        public string Chat { get; set; }
+        public string ClientHostName { get; set; }
 
         [JsonProperty(Required = Required.Always)]
-        public string Text { get; set; }
+        public string ChatName { get; set; }
+
+        [JsonProperty(Required = Required.Always)]
+        public string Login { get; set; }
     }
 }

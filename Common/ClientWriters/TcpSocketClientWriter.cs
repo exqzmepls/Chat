@@ -15,7 +15,7 @@ namespace Common.ClientWriters
         public void SendMessage(string message)
         {
             var networkStream = _tcpClient.GetStream();
-            var buff = Encoding.Unicode.GetBytes(message);
+            var buff = Encoding.Unicode.GetBytes(message + "---end-marker---");
             networkStream.Write(buff, 0, buff.Length);
         }
     }

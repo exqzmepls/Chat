@@ -52,8 +52,10 @@
     <Compile Include="Core\Chat.cs" />
     <Compile Include="Core\ChatService.cs" />
     <Compile Include="Core\IChatService.cs" />
+    <Compile Include="Core\IPingSignal.cs" />
     <Compile Include="Core\Logger.cs" />
     <Compile Include="Core\MemberSession.cs" />
+    <Compile Include="Core\UdpPingSignal.cs" />
     <Compile Include="CreateChatDialog.cs">
       <SubType>Form</SubType>
     </Compile>

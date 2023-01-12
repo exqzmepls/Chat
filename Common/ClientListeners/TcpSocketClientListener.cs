@@ -16,13 +16,22 @@ namespace Common.ClientListeners
 
         public void Start(Action<string> onMessageAction)
         {
+            var buff = new byte[1024];
             var networkStream = _tcpClient.GetStream();
             Task.Run(() =>
             {
                 while (true)
                 {
-                    var buff = new byte[1024];
+                    if (!_tcpClient.Connected)
+                    {
+                        return;
+                    }
                     var readBytes = networkStream.Read(buff, 0, buff.Length);
+                    if (readBytes == 0)
+                    {
+                        continue;
+                    }
+
                     var message = Encoding.Unicode.GetString(buff, 0, readBytes);
                     onMessageAction(message);
                 }

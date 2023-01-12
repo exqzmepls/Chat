@@ -24,10 +24,17 @@ namespace Common.Servers
             {
                 while (true)
                 {
-                    var acceptedTcpClient = _tcpListener.AcceptTcpClient();
-                    var clientListener = new TcpSocketClientListener(acceptedTcpClient);
-                    var clientWriter = new TcpSocketClientWriter(acceptedTcpClient);
-                    onAcceptedClient(clientListener, clientWriter);
+                    try
+                    {
+                        var acceptedTcpClient = _tcpListener.AcceptTcpClient();
+                        var clientListener = new TcpSocketClientListener(acceptedTcpClient);
+                        var clientWriter = new TcpSocketClientWriter(acceptedTcpClient);
+                        onAcceptedClient(clientListener, clientWriter);
+                    }
+                    catch
+                    {
+                        return;
+                    }
                 }
             });
         }

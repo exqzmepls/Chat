@@ -22,7 +22,7 @@ namespace Server.Core
         public void AddClientSession(Guid sessionId, string login, IClientWriter clientWriter)
         {
             _logger.Log($"{login} added to chat (session id = {sessionId})");
-            _sessions[sessionId] = new MemberSession(login, clientWriter);
+            _sessions[sessionId] = new MemberSession(sessionId, login, clientWriter);
             SendSystemMessage($"{login} joined");
         }
 
@@ -36,7 +36,7 @@ namespace Server.Core
             }
 
             _sessions.Remove(sessionId);
-            SendSystemMessage($"{session.Login} quitted");
+            SendSystemMessage($"{session.Login} quited");
             _logger.Log($"{session.Login} removed from chat (session id = {sessionId})");
         }
 
@@ -68,14 +68,15 @@ namespace Server.Core
 
         private void SendMessage(string message)
         {
-            var chatNotification = new ChatNotification
-            {
-                ChatName = _name,
-                Message = message
-            };
-            var serializedMessage = JsonConvert.SerializeObject(chatNotification);
             foreach (var session in _sessions.Values)
             {
+                var chatNotification = new ChatNotification
+                {
+                    ChatName = _name,
+                    Message = message,
+                    SessionId = session.Id
+                };
+                var serializedMessage = JsonConvert.SerializeObject(chatNotification);
                 session.SendResponse(serializedMessage);
             }
         }

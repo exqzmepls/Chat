@@ -38,13 +38,20 @@ namespace Common.Clients
 
         private void ListenResponses(Action<string> onDataReceived)
         {
-            var networkStream = _tcpClient.GetStream();
             var buff = new byte[1024];
+            var networkStream = _tcpClient.GetStream();
             while (true)
             {
-                var readBytes = networkStream.Read(buff, 0, buff.Length);
-                var data = Encoding.Unicode.GetString(buff, 0, readBytes);
-                onDataReceived(data);
+                try
+                {
+                    var readBytes = networkStream.Read(buff, 0, buff.Length);
+                    var data = Encoding.Unicode.GetString(buff, 0, readBytes);
+                    onDataReceived(data);
+                }
+                catch
+                {
+                    return;
+                }
             }
         }
     }

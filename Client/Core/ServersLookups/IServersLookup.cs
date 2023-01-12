@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace Client.Core
+namespace Client.Core.ServersLookups
 {
     public interface IServersLookup
     {
-        IEnumerable<string> GetServers();
+        IEnumerable<ServerInfo> GetServers();
     }
 }

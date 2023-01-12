@@ -1,4 +1,5 @@
 ﻿using Client.Core;
+using Client.Core.ServersLookups;
 using GEmojiSharp;
 using System;
 using System.Linq;
@@ -11,27 +12,31 @@ namespace Client
         private readonly IChatClientService _chatClientService;
         private readonly string _chatName;
         private readonly string _login;
+        private readonly ServerInfo _serverInfo;
 
-        internal ChatForm(IChatClientService chatClientService, string chatName, string login)
+        private IChatClient _chatClient;
+
+        internal ChatForm(IChatClientService chatClientService, string chatName, string login, ServerInfo serverInfo)
         {
             InitializeComponent();
 
             _chatClientService = chatClientService;
             _chatName = chatName;
             _login = login;
+            _serverInfo = serverInfo;
         }
 
         private void ChatForm_Load(object sender, EventArgs e)
         {
-            var chatClient = _chatClientService.JoinChat(_chatName, _login, DisplayMessage);
+            _chatClient = _chatClientService.JoinChat(_chatName, _login, DisplayMessage);
 
-            Text = 
+            Text = $"server -> {_serverInfo}; chat -> {_chatName}; login -> {_login}";
             listView.Items.AddRange(Emoji.All.Select(em => new ListViewItem(em.Raw)).ToArray());
         }
 
         private void ChatForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _chatClient.Dispose();
+            _chatClientService.QuitChat(_chatName, _chatClient.SessionId);
         }
 
         private void sendButton_Click(object sender, EventArgs e)
@@ -39,7 +44,9 @@ namespace Client
             var messageText = inputTextBox.Text.Trim();
 
             if (string.IsNullOrEmpty(messageText))
+            {
                 return;
+            }
 
             _chatClient.SendMessage(messageText);
 
