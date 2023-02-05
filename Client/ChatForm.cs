@@ -15,19 +15,18 @@ namespace Client
             InitializeComponent();
 
             _chatClient = chatClient;
-
-            Text = chatClient.GetInfo();
         }
 
         private void ChatForm_Load(object sender, EventArgs e)
         {
+            Text = _chatClient.GetInfo();
             _chatClient.Join(DisplayMessage);
             listView.Items.AddRange(Emoji.All.Select(em => new ListViewItem(em.Raw)).ToArray());
         }
 
         private void ChatForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _chatClient.Dispose();
+            _chatClient.Quit();
         }
 
         private void sendButton_Click(object sender, EventArgs e)
@@ -52,10 +51,7 @@ namespace Client
         private void DisplayMessage(string message)
         {
             var formattedMessage = $"{message}{Environment.NewLine}";
-            messagesTextBox.Invoke((MethodInvoker)delegate
-            {
-                messagesTextBox.AppendText(formattedMessage);
-            });
+            messagesTextBox.Invoke((MethodInvoker)delegate { messagesTextBox.AppendText(formattedMessage); });
         }
     }
 }

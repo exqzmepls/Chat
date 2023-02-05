@@ -32,7 +32,7 @@ namespace Server
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _chatService.Dispose();
+            _chatService.Stop();
         }
 
         private void createChatToolStripMenuItem_Click(object sender, EventArgs e)

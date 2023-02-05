@@ -1,7 +1,5 @@
 ﻿using Client.Core;
-using GEmojiSharp;
 using System;
-using System.Linq;
 using System.Windows.Forms;
 
 namespace Client
@@ -15,19 +13,18 @@ namespace Client
 
         private void joinChatToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var serversLookup = new ServersLookup();
-            var joinChatDialog = new JoinChatDialog(serversLookup);
+            var joinChatDialog = new JoinChatDialog();
             var dialogResult = joinChatDialog.ShowDialog();
-            if (dialogResult == DialogResult.OK)
+            if (dialogResult != DialogResult.OK)
+                return;
+
+            var connectionInfo = joinChatDialog.GetConnectionInfo();
+            var chatClient = new ChatClient(connectionInfo);
+            var chatForm = new ChatForm(chatClient)
             {
-                var connectionInfo = joinChatDialog.GetConnectionInfo();
-                var chatClient = new ChatClient(connectionInfo);
-                var chatForm = new ChatForm(chatClient)
-                {
-                    MdiParent = this
-                };
-                chatForm.Show();
-            }
+                MdiParent = this
+            };
+            chatForm.Show();
         }
     }
 }

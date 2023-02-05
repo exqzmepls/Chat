@@ -1,30 +1,30 @@
-﻿using Common.Dtos;
-using Common.NamedPipeClient;
-using Common.NamedPipeServer;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Common.Clients;
+using Common.Contracts;
+using Common.Servers;
 
 namespace Server.Core
 {
-    internal class Chat : IDisposable
+    internal class Chat
     {
-        private readonly Dictionary<Guid, IDataChannelClient> _sessions = new Dictionary<Guid, IDataChannelClient>();
-        private readonly IDataChannelServer _chatDataChannelServer;
+        private readonly Dictionary<Guid, IClient> _sessions = new Dictionary<Guid, IClient>();
+        private readonly IServer _chatServer;
         private readonly Logger _logger;
 
         public Chat(string name, Logger logger)
         {
-            _chatDataChannelServer = new MailSlotServer(name); //new NamedPipeServer(name);
+            _chatServer = new MessageQueueServer(name);
             _logger = logger;
         }
 
         public void Create()
         {
-            _chatDataChannelServer.Start(SendUserNewMessage);
+            _chatServer.Start(SendUserNewMessage);
         }
 
-        public void AddClientSession(Guid sessionId, IDataChannelClient sessionPipeClient)
+        public void AddClientSession(Guid sessionId, IClient sessionPipeClient)
         {
             _sessions[sessionId] = sessionPipeClient;
         }
@@ -34,9 +34,9 @@ namespace Server.Core
             _sessions.Remove(sessionId);
         }
 
-        public void Dispose()
+        public void Terminate()
         {
-            _chatDataChannelServer.Dispose();
+            _chatServer.Stop();
         }
 
         public void SendSystemMessage(string text)

@@ -58,14 +58,9 @@
     <Compile Include="ChatForm.Designer.cs">
       <DependentUpon>ChatForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Core\ArpServersLookup.cs" />
     <Compile Include="Core\ConnectionInfo.cs" />
     <Compile Include="Core\ChatClient.cs" />
-    <Compile Include="Core\HostNameProvider.cs" />
     <Compile Include="Core\IChatClient.cs" />
-    <Compile Include="Core\IHostNameProvider.cs" />
-    <Compile Include="Core\IServersLookup.cs" />
-    <Compile Include="Core\ServersLookup.cs" />
     <Compile Include="JoinChatDialog.cs">
       <SubType>Form</SubType>
     </Compile>

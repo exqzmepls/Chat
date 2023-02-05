@@ -34,7 +34,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.chatTextBox = new System.Windows.Forms.TextBox();
-            this.serverComboBox = new System.Windows.Forms.ComboBox();
+            this.serverTextBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // loginTextBox
@@ -90,22 +90,20 @@
             this.chatTextBox.Size = new System.Drawing.Size(168, 20);
             this.chatTextBox.TabIndex = 2;
             // 
-            // serverComboBox
+            // serverTextBox
             // 
-            this.serverComboBox.FormattingEnabled = true;
-            this.serverComboBox.Items.AddRange(new object[] {
-            "."});
-            this.serverComboBox.Location = new System.Drawing.Point(59, 6);
-            this.serverComboBox.Name = "serverComboBox";
-            this.serverComboBox.Size = new System.Drawing.Size(168, 21);
-            this.serverComboBox.TabIndex = 8;
+            this.serverTextBox.Location = new System.Drawing.Point(59, 6);
+            this.serverTextBox.MaxLength = 32;
+            this.serverTextBox.Name = "serverTextBox";
+            this.serverTextBox.Size = new System.Drawing.Size(168, 20);
+            this.serverTextBox.TabIndex = 1;
             // 
             // JoinChatDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(246, 118);
-            this.Controls.Add(this.serverComboBox);
+            this.Controls.Add(this.serverTextBox);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.chatTextBox);
             this.Controls.Add(this.label2);
@@ -118,11 +116,11 @@
             this.Name = "JoinChatDialog";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Load += new System.EventHandler(this.JoinChatDialog_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
+
+        private System.Windows.Forms.TextBox serverTextBox;
 
         #endregion
 
@@ -132,6 +130,5 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox chatTextBox;
-        private System.Windows.Forms.ComboBox serverComboBox;
     }
 }

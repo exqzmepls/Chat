@@ -1,9 +1,8 @@
-﻿using Common.Dtos;
-using Common.NamedPipeClient;
-using Common.NamedPipeServer;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Net;
+using Common.Clients;
+using Common.Contracts;
+using Common.Servers;
 
 namespace Server.Core
 {
@@ -11,14 +10,24 @@ namespace Server.Core
     {
         private readonly Dictionary<string, Chat> _chats = new Dictionary<string, Chat>();
 
-        private readonly IDataChannelServer _mainDataChannelServer;
+        private readonly IServer _mainServer;
         private readonly Logger _logger;
 
         public ChatService(Logger logger)
         {
             _logger = logger;
 
-            _mainDataChannelServer = new MailSlotServer("ServerMainPipe"); //new NamedPipeServer("ServerMainPipe");
+            _mainServer = new MessageQueueServer("ServerMainQueue");
+        }
+
+        public void Stop()
+        {
+            _mainServer.Stop();
+
+            foreach (var chat in _chats.Values)
+            {
+                chat.Terminate();
+            }
         }
 
         public void AddChat(string name)
@@ -28,55 +37,62 @@ namespace Server.Core
             newChat.Create();
         }
 
-        public void Dispose()
-        {
-            _mainDataChannelServer.Dispose();
-
-            foreach (var chat in _chats.Values)
-            {
-                chat.Dispose();
-            }
-        }
-
         public void Start()
         {
-            _mainDataChannelServer.Start(ProcessMessage);
+            _mainServer.Start(ProcessMessage);
         }
 
         private void ProcessMessage(string message)
         {
             _logger.Log(message);
 
-            var deserializedMessage = JsonConvert.DeserializeObject<RequestMessage>(message);
-
-
-            switch (deserializedMessage.RequestType)
+            var deserializedJoinRequestMessage = DeserializeMessageOrDefault<JoinRequestMessage>(message);
+            if (deserializedJoinRequestMessage != null)
             {
-                case RequestType.Ping:
-                    var clientHostName = deserializedMessage.ClientHostName;
-                    var responseWriter = new MailSlotClient(clientHostName, "Ping");
-                    responseWriter.PushMessage(Dns.GetHostName());
-                    break;
+                var chatName = deserializedJoinRequestMessage.ChatName;
+                if (!_chats.ContainsKey(chatName))
+                {
+                    _logger.Log($"{chatName} does not exist");
+                    return;
+                }
 
-                case RequestType.Join:
-                    {
-                        var chatInstance = _chats[deserializedMessage.ChatName];
-                        var sessionId = deserializedMessage.SessionId;
-                        var sessionPipeClient = new MailSlotClient(deserializedMessage.ClientHostName, sessionId.ToString()); // new NamedPipeClient(deserializedMessage.ClientHostName, sessionId.ToString());
-                        chatInstance.AddClientSession(sessionId, sessionPipeClient);
-                        chatInstance.SendSystemMessage($"{deserializedMessage.Login} joined");
-                        break;
-                    }
+                var chat = _chats[chatName];
+                var sessionId = deserializedJoinRequestMessage.SessionId;
+                var sessionPipeClient =
+                    new MessageQueueClient(deserializedJoinRequestMessage.ClientHostName, sessionId.ToString());
+                chat.AddClientSession(sessionId, sessionPipeClient);
+                chat.SendSystemMessage($"{deserializedJoinRequestMessage.Login} joined");
+                return;
+            }
 
+            var deserializedQuitRequestMessage = DeserializeMessageOrDefault<QuitRequestMessage>(message);
+            if (deserializedQuitRequestMessage != null)
+            {
+                var chatName = deserializedQuitRequestMessage.ChatName;
+                if (!_chats.ContainsKey(chatName))
+                {
+                    _logger.Log($"{chatName} does not exist");
+                    return;
+                }
 
-                case RequestType.Quit:
-                    {
-                        var chatInstance = _chats[deserializedMessage.ChatName];
-                        var sessionId = deserializedMessage.SessionId;
-                        chatInstance.RemoveClientSession(sessionId);
-                        chatInstance.SendSystemMessage($"{deserializedMessage.Login} quitted");
-                        break;
-                    }
+                var chat = _chats[chatName];
+                var sessionId = deserializedQuitRequestMessage.SessionId;
+                chat.RemoveClientSession(sessionId);
+                chat.SendSystemMessage($"{deserializedQuitRequestMessage.Login} quited");
+                return;
+            }
+        }
+
+        private static T DeserializeMessageOrDefault<T>(string message)
+        {
+            try
+            {
+                var deserialized = JsonConvert.DeserializeObject<T>(message);
+                return deserialized;
+            }
+            catch
+            {
+                return default;
             }
         }
     }

@@ -1,10 +1,10 @@
-﻿using System;
-
-namespace Server.Core
+﻿namespace Server.Core
 {
-    internal interface IChatService : IDisposable
+    internal interface IChatService
     {
         void Start();
+
+        void Stop();
 
         void AddChat(string name);
     }

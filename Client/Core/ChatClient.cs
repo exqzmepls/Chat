@@ -1,18 +1,18 @@
-﻿using Common.Dtos;
-using Common.NamedPipeClient;
-using Common.NamedPipeServer;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Net;
+using Common.Clients;
+using Common.Contracts;
+using Common.Servers;
 
 namespace Client.Core
 {
     internal class ChatClient : IChatClient
     {
         private readonly Guid _sessionId = Guid.NewGuid();
-        private readonly IDataChannelClient _serverMainDataChannelClient;
-        private readonly IDataChannelClient _chatDataChannelClient;
-        private readonly IDataChannelServer _sessionDataChannelServer;
+        private readonly IClient _serverMainClient;
+        private readonly IClient _chatClient;
+        private readonly IServer _sessionServer;
         private readonly ConnectionInfo _connectionInfo;
 
         public ChatClient(ConnectionInfo connectionInfo)
@@ -20,26 +20,9 @@ namespace Client.Core
             _connectionInfo = connectionInfo;
 
             var serverHostName = connectionInfo.ServerHostName;
-            _serverMainDataChannelClient = new MailSlotClient(serverHostName, "ServerMainPipe"); //new NamedPipeClient(serverHostName, "ServerMainPipe");
-            _chatDataChannelClient = new MailSlotClient(serverHostName, _connectionInfo.ChatName); //new NamedPipeClient(serverHostName, _connectionInfo.ChatName);
-            _sessionDataChannelServer = new MailSlotServer(_sessionId.ToString());  // new NamedPipeServer(_sessionId.ToString());
-        }
-
-        public void Dispose()
-        {
-            var quitRequest = new RequestMessage
-            {
-                SessionId = _sessionId,
-                RequestType = RequestType.Quit,
-                ClientHostName = Dns.GetHostName(),
-                ChatName = _connectionInfo.ChatName,
-                Login = _connectionInfo.Login
-            };
-
-            var quitRequestSerialized = JsonConvert.SerializeObject(quitRequest);
-            _serverMainDataChannelClient.PushMessage(quitRequestSerialized);
-
-            _sessionDataChannelServer.Dispose();
+            _serverMainClient = new MessageQueueClient(serverHostName, "ServerMainQueue");
+            _chatClient = new MessageQueueClient(serverHostName, _connectionInfo.ChatName);
+            _sessionServer = new MessageQueueServer(_sessionId.ToString());
         }
 
         public string GetInfo()
@@ -50,19 +33,18 @@ namespace Client.Core
 
         public void Join(Action<string> onMessageAction)
         {
-            var joinRequest = new RequestMessage
+            var joinRequest = new JoinRequestMessage
             {
                 SessionId = _sessionId,
-                RequestType = RequestType.Join,
                 ClientHostName = Dns.GetHostName(),
                 ChatName = _connectionInfo.ChatName,
                 Login = _connectionInfo.Login
             };
 
-            _sessionDataChannelServer.Start(onMessageAction);
+            _sessionServer.Start(onMessageAction);
 
             var joinRequestSerialized = JsonConvert.SerializeObject(joinRequest);
-            _serverMainDataChannelClient.PushMessage(joinRequestSerialized);
+            _serverMainClient.PushMessage(joinRequestSerialized);
         }
 
         public void SendMessage(string text)
@@ -73,7 +55,22 @@ namespace Client.Core
                 Text = text
             };
             var serializedMessage = JsonConvert.SerializeObject(messageDto);
-            _chatDataChannelClient.PushMessage(serializedMessage);
+            _chatClient.PushMessage(serializedMessage);
+        }
+
+        public void Quit()
+        {
+            var quitRequest = new QuitRequestMessage()
+            {
+                SessionId = _sessionId,
+                ChatName = _connectionInfo.ChatName,
+                Login = _connectionInfo.Login
+            };
+
+            var quitRequestSerialized = JsonConvert.SerializeObject(quitRequest);
+            _serverMainClient.PushMessage(quitRequestSerialized);
+
+            _sessionServer.Stop();
         }
     }
 }
